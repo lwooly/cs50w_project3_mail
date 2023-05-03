@@ -34,17 +34,37 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  
+  //headings for table
+  const headings = document.createElement('div')
+  headings.innerHTML = `
+  <br>
+  <div class="container no-gutters m-0">
+    <div class="row text-light bg-secondary h6">
+      <div class="col-4 border">From</div>
+      <div class="col-4 border">Title</div>
+      <div class="col-4 border">Time</div>
+    </div>
+  </div>`;
+  document.querySelector('#emails-view').append(headings);
 
   // load emails - GET request to API
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-    //print emails
+    //loop through emails
     emails.forEach(email => {
       const element = document.createElement('div');
-      element.innerHTML = `<div>${email.sender} ${email.subject} ${email.timestamp}</div>`;
+      element.innerHTML = `
+      <div class="container no-gutters m-0">
+        <div class="row border">
+          <div class="col-4 border">${email.sender}</div>
+          <div class="col-4 border">${email.subject}</div>
+          <div class="col-4 border">${email.timestamp}</div>
+        </div>
+      </div>`;
+      document.querySelector('#emails-view').append(element);
     });
-    document.querySelector('#emails-view').append(element);
   });
 }
 

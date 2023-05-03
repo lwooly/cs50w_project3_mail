@@ -40,13 +40,12 @@ function load_mailbox(mailbox) {
   .then(response => response.json())
   .then(emails => {
     //print emails
-    console.log(emails);
-
-    //do something else etc.....
+    emails.forEach(email => {
+      const element = document.createElement('div');
+      element.innerHTML = `<div>${email.sender} ${email.subject} ${email.timestamp}</div>`;
+    });
+    document.querySelector('#emails-view').append(element);
   });
-
-
-
 }
 
 function send_email(event) {

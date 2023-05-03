@@ -5,10 +5,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
+  
+  // on submit of form send email and redirect to sent mailbox:
   document.querySelector('#compose-form').onsubmit = send_email;
 
   // By default, load the inbox
   load_mailbox('inbox');
+
 });
 
 function compose_email() {
@@ -31,10 +34,25 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  // load emails - GET request to API
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+    //print emails
+    console.log(emails);
+
+    //do something else etc.....
+  });
+
+
+
 }
 
-function send_email() {
+function send_email(event) {
   
+  event.preventDefault()
+
   // get values from form for recipients, subject, and body
   const recipient = document.querySelector('#compose-recipients').value;
   const subject = document.querySelector('#compose-subject').value;
@@ -53,8 +71,8 @@ function send_email() {
   .then(result => {
       // Print result
       console.log(result);
+      // once email is sent load users sent mailbox
+      load_mailbox('sent');
   });
 
-  //stop form submitting
-  return false;
 }

@@ -19,6 +19,8 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('#detail-view').style.display = 'none';
+
 
   // Clear out composition fields
   document.querySelector('#compose-recipients').value = '';
@@ -31,6 +33,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#detail-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -39,11 +42,11 @@ function load_mailbox(mailbox) {
   const headings = document.createElement('div')
   headings.innerHTML = `
   <br>
-  <div class="container no-gutters m-0">
-    <div class="row text-light bg-secondary h6">
-      <div class="col-4 border">From</div>
-      <div class="col-4 border">Title</div>
-      <div class="col-4 border">Time</div>
+  <div class="list-group-item text-light bg-secondary h6 mb-0 rounded-0">
+    <div class="row">
+      <div class="col-4">From</div>
+      <div class="col-4">Title</div>
+      <div class="col-4">Time</div>
     </div>
   </div>`;
   document.querySelector('#emails-view').append(headings);
@@ -55,16 +58,46 @@ function load_mailbox(mailbox) {
     //loop through emails
     emails.forEach(email => {
       const element = document.createElement('div');
+      element.classList.add('list-group-item');
       element.innerHTML = `
-      <div class="container no-gutters m-0">
-        <div class="row border">
-          <div class="col-4 border">${email.sender}</div>
-          <div class="col-4 border">${email.subject}</div>
-          <div class="col-4 border">${email.timestamp}</div>
+        <div class="row">
+          <div class="col-4">${email.sender}</div>
+          <div class="col-4">${email.subject}</div>
+          <div class="col-4">${email.timestamp}</div>
         </div>
-      </div>`;
+      `;
+      element.addEventListener('click', function() {
+        //change background to grey if clicked
+        console.log('this element has been clicked');
+        element.classList.add("list-group-item-secondary");
+        show_email(email);
+      });
       document.querySelector('#emails-view').append(element);
     });
+  });
+}
+
+function show_email(email) {
+  /// show the email and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#detail-view').style.display = 'block';
+  
+
+  // get email
+  fetch(`/emails/${email.id}`)
+  .then(response => response.json())
+  .then(single_email => {
+    console.log(single_email);
+    //display email
+    document.querySelector('#detail-view').innerHTML = `
+    <div class='list-group-item'>
+      <h5>${single_email.sender}<h3>
+      <p>${single_email.recipients}<p>
+      <h4>${single_email.subject}<h4>
+      <p>${single_email.timestamp}<p>
+      <p>${single_email.body}<p>
+    `;
   });
 }
 

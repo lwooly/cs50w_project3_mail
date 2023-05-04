@@ -59,6 +59,9 @@ function load_mailbox(mailbox) {
     emails.forEach(email => {
       const element = document.createElement('div');
       element.classList.add('list-group-item');
+      if (email.read === true) {
+        element.classList.add('list-group-item-secondary');
+      }
       element.innerHTML = `
         <div class="row">
           <div class="col-4">${email.sender}</div>
@@ -67,42 +70,82 @@ function load_mailbox(mailbox) {
         </div>
       `;
       element.addEventListener('click', function() {
-        //change background to grey if clicked
         console.log('this element has been clicked');
-        element.classList.add("list-group-item-secondary");
-        show_email(email);
+        show_email(email, mailbox);
+        if (mailbox === 'inbox') {
+          read_email(email);
+        }
       });
       document.querySelector('#emails-view').append(element);
     });
   });
 }
 
-function show_email(email) {
+
+function show_email(email, mailbox) {
   /// show the email and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
   document.querySelector('#detail-view').style.display = 'block';
   
-
   // get email
   fetch(`/emails/${email.id}`)
   .then(response => response.json())
   .then(single_email => {
-    console.log(single_email);
     //display email
     document.querySelector('#detail-view').innerHTML = `
-    <div class='list-group-item'>
-      <h5>${single_email.sender}<h3>
-      <p>${single_email.recipients}<p>
-      <h4>${single_email.subject}<h4>
-      <p>${single_email.timestamp}<p>
+    <div class='list-group-item text-muted'>
+      <p>From: ${single_email.sender}     Time: ${single_email.timestamp}<p>
+      <h6>To: ${single_email.recipients}<h6>
+      <h6>Subject: ${single_email.subject}<h6>
+    </div>
+    <div class='list-group-item text-muted'>
       <p>${single_email.body}<p>
+    </div>
+    <div id="archive" class='list-group-item text-muted'>
+      <button class="btn btn-secondary" type="submit" >Archive</button>
+    </div>
+    <div id="unarchive" class='list-group-item text-muted'>
+      <button class="btn btn-secondary" type="submit" >Unarchive</button>
+    </div>
     `;
+
+    //show archive button in inbox only
+    if (mailbox === 'inbox') {
+      document.querySelector('#archive').style.display = 'block';
+    }
+    else {
+      document.querySelector('#archive').style.display = 'none';
+    }
+    //show unarchive button in archive only
+    if(mailbox === 'archive') {
+      document.querySelector('#unarchive').style.display = 'block';
+    }
+    else {
+      document.querySelector('#unarchive').style.display = 'none';
+    }
+    
+    //Change archive status on button click
+    document.querySelector('#archive').addEventListener('click', () => archive(single_email, true));
+    document.querySelector('#unarchive').addEventListener('click', () => archive(single_email, false));
+   
   });
 }
 
+function archive(email, status) {
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        archived: status
+    })
+  })
+  // once email has been archived return to inbox
+  load_mailbox('inbox');
+}
+
+
 function send_email(event) {
-  
+
   event.preventDefault()
 
   // get values from form for recipients, subject, and body
@@ -127,4 +170,14 @@ function send_email(event) {
       load_mailbox('sent');
   });
 
+}
+
+function read_email(email){
+  console.log(email);
+  fetch(`/emails/${email.id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        read: true
+    })
+  })
 }

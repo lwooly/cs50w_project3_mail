@@ -14,18 +14,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-function compose_email() {
-
+function compose_email(email_reply) {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
   document.querySelector('#detail-view').style.display = 'none';
 
-
-  // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  if (email_reply === undefined) {
+    // clear composition fields
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
+  }
+  else {
+    // check if email prefix is Re
+    let reply_prefix = 'Re: ';
+    if (email_reply.subject.slice(0,3) ==='Re:') {
+      reply_prefix = '';
+    }
+    console.log(reply_prefix + email_reply.subject);
+    // prefill form values with reply values
+    document.querySelector('#compose-recipients').value = email_reply.sender;
+    document.querySelector('#compose-subject').value = reply_prefix + email_reply.subject;
+    document.querySelector('#compose-body').value = `On ${email_reply.timestamp} ${email_reply.sender} wrote: \n \n${email_reply.body}`;
+  }
+  
+  
 }
 
 function load_mailbox(mailbox) {
@@ -108,6 +122,9 @@ function show_email(email, mailbox) {
     <div id="unarchive" class='list-group-item text-muted'>
       <button class="btn btn-secondary" type="submit" >Unarchive</button>
     </div>
+    <div id="reply" class='list-group-item text-muted'>
+      <button class="btn btn-secondary" type="submit" >Reply</button>
+    </div>
     `;
 
     //show archive button in inbox only
@@ -128,9 +145,13 @@ function show_email(email, mailbox) {
     //Change archive status on button click
     document.querySelector('#archive').addEventListener('click', () => archive(single_email, true));
     document.querySelector('#unarchive').addEventListener('click', () => archive(single_email, false));
+
+    //Reply to email on button click
+    document.querySelector('#reply').addEventListener('click', () => compose_email(single_email));
    
   });
 }
+
 
 function archive(email, status) {
   fetch(`/emails/${email.id}`, {
